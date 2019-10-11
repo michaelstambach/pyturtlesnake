@@ -1,25 +1,47 @@
 import turtle
 
+game_height = 512
+game_width = 512
+speed = 8
 
 snake = turtle.Turtle()
+snake.speed(0)  # turn off animations
+
 screen = snake.getscreen()
-snake.speed(0) # turn off animations
+gamepainter = turtle.RawTurtle(screen)
+gamepainter.speed(0)
+gamepainter.hideturtle()
+
+
+def draw_game():
+    gamepainter.pu()
+    gamepainter.goto(-(game_width/2), -(game_height/2))
+
+    gamepainter.pd()
+    gamepainter.width(4)
+    gamepainter.forward(game_width)
+    gamepainter.seth(90)
+    gamepainter.forward(game_height)
+    gamepainter.seth(180)
+    gamepainter.forward(game_width)
+    gamepainter.seth(270)
+    gamepainter.forward(game_height)
 
 
 def right():
-    snake.setheading(0)
+    snake.seth(0)
 
 
 def up():
-    snake.setheading(90)
+    snake.seth(90)
 
 
 def left():
-    snake.setheading(180)
+    snake.seth(180)
 
 
 def down():
-    snake.setheading(270)
+    snake.seth(270)
 
 
 def toggle():
@@ -31,20 +53,60 @@ def toggle():
         screen.ontimer(move, 16)
 
 
+def check_collision():
+    """
+    this function returns False if the turtle/snake is on or out of the game borders
+
+    it works ok for now but there will need to be a better solution when i implement
+    collision with the snake itself
+    """
+    if snake.heading() == 0:
+        if snake.xcor() >= (game_width/2):
+            return False
+        else:
+            return True
+
+    elif snake.heading() == 90:
+        if snake.ycor() >= (game_height/2):
+            return False
+        else:
+            return True
+
+    elif snake.heading() == 180:
+        if snake.xcor() <= -(game_width / 2):
+            return False
+        else:
+            return True
+
+    elif snake.heading() == 270:
+        if snake.ycor() <= -(game_height/2):
+            return False
+        else:
+            return True
+
+    else:
+        return False
+
+
 def move():
-    if running:
-        snake.forward(8)
+    if running and check_collision():
+        snake.forward(speed)
         screen.ontimer(move, 16)
 
 
-screen.listen()
+def game():
+    screen.listen()
 
-screen.onkey(right, 'Right')
-screen.onkey(up, 'Up')
-screen.onkey(left, 'Left')
-screen.onkey(down, 'Down')
-screen.onkey(toggle, 'space')
+    screen.onkey(right, 'Right')
+    screen.onkey(up, 'Up')
+    screen.onkey(left, 'Left')
+    screen.onkey(down, 'Down')
+    screen.onkey(toggle, 'space')
+
 
 running = False
+
+draw_game()
+game()
 
 screen.mainloop()
