@@ -1,5 +1,5 @@
 import turtle
-import random
+import random, time
 
 game_height = 400
 game_width = 400    # please use numbers divisible by 2
@@ -147,10 +147,8 @@ def check_target():
 def death():
     screen.bgcolor("red")
     screen.update()
+    time.sleep(1/4)
     reset_game()
-    screen.bgcolor("white")
-    screen.update()
-
 
 def move():
     """
@@ -174,8 +172,13 @@ def move():
         screen.ontimer(move, speed)
 
 
+def reset_game():
+    screen.clear()
+    init_game()
+
+
 def init_game():
-    global target, target_pos
+    global target, target_pos, snake
     draw_game()
 
     screen.listen()
@@ -186,6 +189,8 @@ def init_game():
     screen.onkey(down, 'Down')
     screen.onkey(toggle, 'space')
 
+    screen.tracer(0)
+
     target = turtle.RawTurtle(screen)
     target.speed(0)  # turn off animations
     target.shape("square")
@@ -194,12 +199,6 @@ def init_game():
     target.color("red")
     target.pu()
     target_pos = (0, 0)  # storing the targets position in a seperate variable to avoid calling .xcor() and .ycor() every "frame"
-
-    reset_game()
-
-
-def reset_game():
-    global snake
 
     snake = []
     add_segment()
@@ -211,7 +210,5 @@ running = False
 
 
 init_game()
-
-screen.tracer(0)  # im already tracer
 
 screen.mainloop()
