@@ -1,16 +1,23 @@
 import turtle
+import random
 
 game_height = 400
-game_width = 400
+game_width = 400    # please use numbers divisible by 2
 speed = 100
 
 
 def draw_game():
+    global screen
+
+    gamepainter = turtle.Turtle()
+    gamepainter.speed(8)
+    gamepainter.hideturtle()
+
     gamepainter.pu()
     gamepainter.goto(-(game_width/2), -(game_height/2))
 
     gamepainter.pd()
-    gamepainter.width(4)
+    gamepainter.width(5)
     gamepainter.forward(game_width)
     gamepainter.seth(90)
     gamepainter.forward(game_height)
@@ -19,36 +26,40 @@ def draw_game():
     gamepainter.seth(270)
     gamepainter.forward(game_height)
 
-    screen.update()
+    screen = gamepainter.getscreen()
 
 
-def add_segment(turtles, amount = 1):
+def add_segment(amount=1):
+    global snake
     for i in range(amount):
-        newturtle = turtle.Turtle()
+        newturtle = turtle.RawTurtle(screen)
         newturtle.speed(0)  # turn off animations
         newturtle.shape("square")
         newturtle.resizemode("user")
         newturtle.turtlesize(0.5, 0.5)  # resize the square (the original is 20x20px)
         newturtle.pu()
 
-        turtles.append(newturtle)
-    return turtles
+        snake.append(newturtle)
 
 
 def right():
-    snake[0].seth(0)
+    if not snake[0].heading() == 180:
+        snake[0].seth(0)
 
 
 def up():
-    snake[0].seth(90)
+    if not snake[0].heading() == 270:
+        snake[0].seth(90)
 
 
 def left():
-    snake[0].seth(180)
+    if not snake[0].heading() == 0:
+        snake[0].seth(180)
 
 
 def down():
-    snake[0].seth(270)
+    if not snake[0].heading() == 90:
+        snake[0].seth(270)
 
 
 def toggle():
@@ -64,7 +75,6 @@ def check_collision():
     """
     this function returns False if snake[0] is on or out of the game borders or will touch itself in the next frame
 
-
     """
     positions = []
     x = round(snake[0].xcor())
@@ -74,31 +84,72 @@ def check_collision():
         positions.append((round(segment.xcor()), round(segment.ycor())))  # same thing here
 
     if snake[0].heading() == 0:
-        if x >= (game_width/2) or (x + 10, y) in positions:
+        if x + 10 >= (game_width/2) or (x + 10, y) in positions:
             return False
         else:
             return True
 
     elif snake[0].heading() == 90:
-        if y >= (game_height/2) or (x, y + 10) in positions:
+        if y + 10 >= (game_height/2) or (x, y + 10) in positions:
             return False
         else:
             return True
 
     elif snake[0].heading() == 180:
-        if x <= -(game_width / 2) or (x - 10, y) in positions:
+        if x - 10 <= -(game_width / 2) or (x - 10, y) in positions:
             return False
         else:
             return True
 
     elif snake[0].heading() == 270:
-        if y <= -(game_height/2) or (x, y - 10) in positions:
+        if y - 10 <= -(game_height/2) or (x, y - 10) in positions:
             return False
         else:
             return True
 
     else:
         return False
+
+
+def scored(reset=False):
+    """
+    this function gets called when the snake touches the target
+    it updates the score and resets the target
+    """
+    global score
+    global target_pos
+
+    if reset:
+        score = 0
+    else:
+        score += 1
+        add_segment()
+
+    target_x = random.randrange(-(game_width/2) + 10, (game_width/2) - 10, step=10)
+    target_y = random.randrange(-(game_height/2) + 10, (game_height/2) - 10, step=10)
+
+    # its a little bit confusing but it works
+
+    target_pos = (target_x,target_y)
+    target.goto(target_pos)
+
+
+def check_target():
+    """
+    this function checks if the snake is touching the target ("apple")
+    """
+    snake_pos = (round(snake[0].xcor()), round(snake[0].ycor()))
+
+    if snake_pos == target_pos:
+        scored()
+
+
+def death():
+    screen.bgcolor("red")
+    screen.update()
+    reset_game()
+    screen.bgcolor("white")
+    screen.update()
 
 
 def move():
@@ -112,11 +163,21 @@ def move():
             snake[i].goto(snake[i-1].xcor(), snake[i-1].ycor())
 
         snake[0].forward(10)
+        check_target()
+
         screen.update()
         screen.ontimer(move, speed)
 
+    elif not check_collision():
+        death()
 
-def game():
+        screen.ontimer(move, speed)
+
+
+def init_game():
+    global target, target_pos
+    draw_game()
+
     screen.listen()
 
     screen.onkey(right, 'Right')
@@ -125,21 +186,32 @@ def game():
     screen.onkey(down, 'Down')
     screen.onkey(toggle, 'space')
 
+    target = turtle.RawTurtle(screen)
+    target.speed(0)  # turn off animations
+    target.shape("square")
+    target.resizemode("user")
+    target.turtlesize(0.5, 0.5)  # resize the square (the original is 20x20px)
+    target.color("red")
+    target.pu()
+    target_pos = (0, 0)  # storing the targets position in a seperate variable to avoid calling .xcor() and .ycor() every "frame"
 
-snake = []
-snake = add_segment(snake, 16)
+    reset_game()
 
-screen = snake[0].getscreen()
-screen.tracer(0)  # im already tracer
 
-gamepainter = turtle.RawTurtle(screen)
-gamepainter.speed(0)
-gamepainter.hideturtle()
+def reset_game():
+    global snake
+
+    snake = []
+    add_segment()
+
+    scored(reset=True)
 
 
 running = False
 
-draw_game()
-game()
+
+init_game()
+
+screen.tracer(0)  # im already tracer
 
 screen.mainloop()
