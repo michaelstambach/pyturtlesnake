@@ -6,5 +6,5 @@ snake made using the python turtle
 ``python snake.py``
 
 ## how to play?
-arrow keys -> movement
+arrow keys -> movement  
 space -> pause
