@@ -1,5 +1,6 @@
 import turtle
-import random, time
+import random
+import time
 
 game_height = 400
 game_width = 400    # please use numbers divisible by 2
@@ -204,6 +205,7 @@ def init_game():
     add_segment()
 
     scored(reset=True)
+    screen.update()
 
 
 running = False
